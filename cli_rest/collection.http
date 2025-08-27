@@ -1,0 +1,93 @@
+### Plugin VSCode: humao.rest-client - <3
+// REST BASE URL
+@protocol=http:
+@host=localhost
+@post=8080
+@base_url={{protocol}}//{{host}}:{{post}}
+// API resources
+@resource_auction=auctions
+@resource_bid=bids
+@resource_user=users
+// API parameters
+@param_auction_id=bdd51a66-8aaa-4369-87f8-19f4ca01d195
+@param_user_id=0ae52872-ace3-40f0-88e9-d53955ecc213
+// Status: Active 1, Completed 2
+@param_status=1
+@param_category=
+@param_product_name=
+// Condition: new 1, used 2, refurbished 3
+@param_condition=2
+
+##########################
+###### AUCTION URLs ######
+##########################
+
+### Get auctions by status, category, product name
+GET {{base_url}}/{{resource_auction}}/?status={{param_status}} HTTP/1.1
+Content-Type: application/json
+###
+
+### Get auctions by id
+GET {{base_url}}/{{resource_auction}}/{{param_auction_id}} HTTP/1.1
+Content-Type: application/json
+###
+
+### Create auction
+POST {{base_url}}/{{resource_auction}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "product_name": "Meias do Michael",
+  "category": "celebridades",
+  "description": "Meias usadas pelo Michael Jackson",
+  "condition": {{param_condition}}
+}
+###
+
+### Get auction winner by id
+GET {{base_url}}/{{resource_auction}}/winner/{{param_auction_id}} HTTP/1.1
+Content-Type: application/json
+###
+
+##########################
+####### BID  URLs ########
+##########################
+
+### Create bid
+POST {{base_url}}/{{resource_bid}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "user_id": "{{param_user_id}}",
+  "auction_id": "{{param_auction_id}}",
+  "amount": 3.0
+}
+###
+
+### List bids by auction id
+GET {{base_url}}/{{resource_bid}}/{{param_auction_id}} HTTP/1.1
+Content-Type: application/json
+###
+
+##########################
+####### USER  URLs #######
+##########################
+
+### Get users
+GET {{base_url}}/{{resource_user}} HTTP/1.1
+Content-Type: application/json
+###
+
+### Create user
+POST {{base_url}}/{{resource_user}} HTTP/1.1
+Content-Type: application/json
+
+{
+  "name": "Limão"
+}
+###
+
+### Get user by id
+GET {{base_url}}/{{resource_user}}/{{param_user_id}} HTTP/1.1
+Content-Type: application/json
+###
