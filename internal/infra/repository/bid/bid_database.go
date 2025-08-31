@@ -1,7 +1,8 @@
 package bid
 
 import (
-	"l03/internal/infra/repository/auction"
+	"l03/configuration/logger"
+	"l03/internal/entity/auction_entity"
 
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -16,12 +17,14 @@ type BidEntityMongo struct {
 
 type BidRepository struct {
 	Collection        *mongo.Collection
-	AuctionRepository *auction.AuctionRepository
+	AuctionRepository auction_entity.AuctionRepositoryInterface
+	logger            *logger.ContextualLogger
 }
 
-func NewRepository(database *mongo.Database, auditionRepository *auction.AuctionRepository) *BidRepository {
+func NewRepository(database *mongo.Database, auctionRepository auction_entity.AuctionRepositoryInterface) *BidRepository {
 	return &BidRepository{
 		Collection:        database.Collection("bids"),
-		AuctionRepository: auditionRepository,
+		AuctionRepository: auctionRepository,
+		logger:            logger.WithComponent("repository-bid"),
 	}
 }

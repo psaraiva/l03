@@ -2,14 +2,15 @@ package auction
 
 import (
 	"context"
-	"fmt"
-	"l03/configuration/logger"
+	"errors"
 	"l03/internal/entity/auction_entity"
 	"l03/internal/internal_error"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/zap"
 )
 
 func (ar *AuctionRepository) FindById(ctx context.Context, id string) (*auction_entity.Auction, *internal_error.InternalError) {
@@ -17,12 +18,11 @@ func (ar *AuctionRepository) FindById(ctx context.Context, id string) (*auction_
 
 	var auctionEntityMongo AuctionEntityMongo
 	if err := ar.Collection.FindOne(ctx, filter).Decode(&auctionEntityMongo); err != nil {
-		logger.Error(fmt.Sprintf("repository.auction.FindAuctionById.err.id = %s", id), err)
-		return nil, internal_error.NewInternalServerError("error trying to find auction")
-	}
-
-	if auctionEntityMongo.ID == "" {
-		return nil, internal_error.NewNotFoundError("auction not found")
+		ar.logger.Error("error trying to find auction by id", err, zap.String("auctionId", id))
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, internal_error.NewNotFoundError("auction not found")
+		}
+		return nil, internal_error.NewInternalServerError("error trying to find auction by id")
 	}
 
 	return &auction_entity.Auction{
@@ -59,14 +59,14 @@ func (ar *AuctionRepository) FindAuctions(
 
 	cursor, err := ar.Collection.Find(ctx, filter)
 	if err != nil {
-		logger.Error("repository.auction.FindAuction.err", err)
+		ar.logger.Error("error trying to find auctions", err)
 		return nil, internal_error.NewInternalServerError("error trying to find auctions")
 	}
 	defer cursor.Close(ctx)
 
 	var auctionEntityMongo []AuctionEntityMongo
 	if err := cursor.All(ctx, &auctionEntityMongo); err != nil {
-		logger.Error("repository.auction.FindAuction.err", err)
+		ar.logger.Error("error decoding auctions from cursor", err)
 		return nil, internal_error.NewInternalServerError("Error trying to find auctions")
 	}
 

@@ -1,6 +1,7 @@
 package auction
 
 import (
+	"l03/configuration/logger"
 	"l03/internal/entity/auction_entity"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,8 +20,12 @@ type AuctionEntityMongo struct {
 
 type AuctionRepository struct {
 	Collection *mongo.Collection
+	logger     *logger.ContextualLogger
 }
 
 func NewRepository(database *mongo.Database) *AuctionRepository {
-	return &AuctionRepository{Collection: database.Collection("auctions")}
+	return &AuctionRepository{
+		Collection: database.Collection("auctions"),
+		logger:     logger.WithComponent("repository-auction"),
+	}
 }

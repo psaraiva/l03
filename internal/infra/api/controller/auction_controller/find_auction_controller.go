@@ -34,15 +34,19 @@ func (ac *AuctionController) FindById(c *gin.Context) {
 }
 
 func (ac *AuctionController) FindAuctions(c *gin.Context) {
-	status := c.Query("status")
+	statusStr := c.Query("status")
 	category := c.Query("category")
 	productName := c.Query("product-name")
 
-	statusInt, errConv := strconv.Atoi(status)
-	if errConv != nil {
-		errRest := rest_err.NewBadRequestError("invalid status")
-		c.JSON(errRest.Code, errRest)
-		return
+	var statusInt int
+	if statusStr != "" {
+		var errConv error
+		statusInt, errConv = strconv.Atoi(statusStr)
+		if errConv != nil {
+			errRest := rest_err.NewBadRequestError("invalid status format, must be a number")
+			c.JSON(errRest.Code, errRest)
+			return
+		}
 	}
 
 	auctions, err := ac.auctionUseCase.FindActions(c, auction_usecase.AuctionStatus(statusInt), category, productName)

@@ -3,13 +3,12 @@ package user
 import (
 	"context"
 	"errors"
-	"fmt"
-	"l03/configuration/logger"
 	"l03/internal/entity/user_entity"
 	"l03/internal/internal_error"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.uber.org/zap"
 )
 
 func (ur *UserRepository) FindById(ctx context.Context, id string) (*user_entity.User, *internal_error.InternalError) {
@@ -18,9 +17,9 @@ func (ur *UserRepository) FindById(ctx context.Context, id string) (*user_entity
 	var user UserEntityMongo
 	err := ur.Collection.FindOne(ctx, filter).Decode(&user)
 	if err != nil {
-		logger.Error(fmt.Sprintf("repository.user.FindById.err.id='%s'", id), err)
+		ur.logger.Error("Error trying to find user by id", err, zap.String("userId", id))
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return nil, internal_error.NewNotFoundError(fmt.Sprintf("user not found by id = %s", id))
+			return nil, internal_error.NewNotFoundError("user not found")
 		}
 		return nil, internal_error.NewInternalServerError("error trying to find user by id")
 	}
@@ -34,15 +33,15 @@ func (ur *UserRepository) FindById(ctx context.Context, id string) (*user_entity
 func (ur *UserRepository) FindUsers(ctx context.Context) ([]user_entity.User, *internal_error.InternalError) {
 	cursor, err := ur.Collection.Find(ctx, bson.M{})
 	if err != nil {
-		logger.Error("repository.user.FindUsers.err", err)
+		ur.logger.Error("Error trying to find users", err)
 		return nil, internal_error.NewInternalServerError("error trying to find users")
 	}
 	defer cursor.Close(ctx)
 
 	var userEntityMongo []UserEntityMongo
 	if err := cursor.All(ctx, &userEntityMongo); err != nil {
-		logger.Error("repository.user.FindUsers.err", err)
-		return nil, internal_error.NewInternalServerError("Error trying to find users")
+		ur.logger.Error("Error decoding users from cursor", err)
+		return nil, internal_error.NewInternalServerError("error trying to find users")
 	}
 
 	list := make([]user_entity.User, len(userEntityMongo))

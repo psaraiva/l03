@@ -18,8 +18,7 @@ func (ar *AuctionRepository) Create(ctx context.Context, auction auction_entity.
 		Timestamp:   auction.Timestamp.Unix(),
 	}
 
-	_, err := ar.Collection.InsertOne(ctx, entityMongo)
-	if err != nil {
+	if _, err := ar.Collection.InsertOne(ctx, entityMongo); err != nil {
 		logger.Error("repository.auction.Create.err", err)
 		return internal_error.NewInternalServerError("error trying to create auction")
 	}

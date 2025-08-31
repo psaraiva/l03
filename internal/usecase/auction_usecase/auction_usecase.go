@@ -2,6 +2,7 @@ package auction_usecase
 
 import (
 	"context"
+	"l03/configuration/logger"
 	"l03/internal/entity/auction_entity"
 	"l03/internal/entity/bid_entity"
 	"l03/internal/internal_error"
@@ -38,13 +39,16 @@ type AuctionStatus int
 type AuctionUseCase struct {
 	auctionRepository auction_entity.AuctionRepositoryInterface
 	bidRepository     bid_entity.BidRepositoryInterface
+	logger            *logger.ContextualLogger
 }
 
 type AuctionUseCaseInterface interface {
 	Create(ctx context.Context, auctionInput AuctionInputDTO) (*usecase.IDOutputDTO, *internal_error.InternalError)
-	FindById(ctx context.Context, id string) (*AuctionOutputDTO, *internal_error.InternalError)
 	FindActions(ctx context.Context, status AuctionStatus, category, productName string) (*[]AuctionOutputDTO, *internal_error.InternalError)
+	FindById(ctx context.Context, id string) (*AuctionOutputDTO, *internal_error.InternalError)
 	FindWinnigBidByAuctionId(ctx context.Context, auctionId string) (*WinningInfoOutputDTO, *internal_error.InternalError)
+	Start(ctx context.Context, id string) *internal_error.InternalError
+	End(ctx context.Context, id string) *internal_error.InternalError
 }
 
 func NewUseCase(
@@ -53,5 +57,6 @@ func NewUseCase(
 	return &AuctionUseCase{
 		auctionRepository: auctionRepository,
 		bidRepository:     bidRepository,
+		logger:            logger.WithComponent("usecase-auction"),
 	}
 }

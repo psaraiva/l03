@@ -2,7 +2,10 @@ package bid_usecase
 
 import (
 	"context"
+	"l03/configuration/logger"
 	"l03/internal/entity/bid_entity"
+	"l03/internal/internal_error"
+	"l03/internal/usecase"
 	"time"
 )
 
@@ -21,25 +24,31 @@ type BidOutputDTO struct {
 }
 
 type BidUseCase struct {
-	BidRepository       bid_entity.BidRepositoryInterface
-	timer               *time.Timer
-	maxBatchSize        int
-	batchInsertInterval time.Duration
-	bidChannel          chan bid_entity.Bid
+	BidRepository  bid_entity.BidRepositoryInterface
+	batchProcessor *bidBatchProcessor
+	logger         *logger.ContextualLogger
 }
 
-func NewUseCase(bidRepository bid_entity.BidRepositoryInterface) *BidUseCase {
-	maxBathSizeInterval := getMaxBathSizeInterval()
-	maxBatchSize := getMaxBatchSize()
+type BidUseCaseInterface interface {
+	Create(ctx context.Context, bidInputDTO BidInputDTO) (*usecase.IDOutputDTO, *internal_error.InternalError)
+	FindWinningBidByAuctionId(ctx context.Context, auctionID string) (*BidOutputDTO, *internal_error.InternalError)
+	FindByAuctionId(ctx context.Context, auctionID string) (*[]BidOutputDTO, *internal_error.InternalError)
+	Shutdown(ctx context.Context)
+}
 
+func NewUseCase(
+	ctx context.Context,
+	bidRepository bid_entity.BidRepositoryInterface) *BidUseCase {
 	bidUseCase := &BidUseCase{
-		BidRepository:       bidRepository,
-		timer:               time.NewTimer(maxBathSizeInterval),
-		maxBatchSize:        maxBatchSize,
-		batchInsertInterval: maxBathSizeInterval,
-		bidChannel:          make(chan bid_entity.Bid, maxBatchSize),
+		BidRepository:  bidRepository,
+		batchProcessor: newBidBatchProcessor(ctx, bidRepository),
+		logger:         logger.WithComponent("usecase-bid"),
 	}
-
-	bidUseCase.triggerCreateRoutine(context.Background())
 	return bidUseCase
+}
+
+func (bu *BidUseCase) Shutdown(ctx context.Context) {
+	if bu.batchProcessor != nil {
+		bu.batchProcessor.shutdown()
+	}
 }

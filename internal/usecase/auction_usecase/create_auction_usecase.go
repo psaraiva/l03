@@ -7,7 +7,7 @@ import (
 	"l03/internal/usecase"
 )
 
-func (au *AuctionUseCase) Create(ctx context.Context, auctionInput AuctionInputDTO) (*usecase.IDOutputDTO, *internal_error.InternalError) {
+func (auc *AuctionUseCase) Create(ctx context.Context, auctionInput AuctionInputDTO) (*usecase.IDOutputDTO, *internal_error.InternalError) {
 	entity, err := auction_entity.Create(
 		auctionInput.ProductName,
 		auctionInput.Category,
@@ -15,10 +15,12 @@ func (au *AuctionUseCase) Create(ctx context.Context, auctionInput AuctionInputD
 		auction_entity.ProductCondition(auctionInput.Condition))
 
 	if err != nil {
+		auc.logger.Error("Error trying to create auction by entity", err)
 		return nil, err
 	}
 
-	if err := au.auctionRepository.Create(ctx, *entity); err != nil {
+	if err = auc.auctionRepository.Create(ctx, *entity); err != nil {
+		auc.logger.Error("Error trying to create auction by repository", err)
 		return nil, err
 	}
 

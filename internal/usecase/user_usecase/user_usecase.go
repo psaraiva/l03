@@ -2,6 +2,7 @@ package user_usecase
 
 import (
 	"context"
+	"l03/configuration/logger"
 	"l03/internal/entity/user_entity"
 	"l03/internal/internal_error"
 	"l03/internal/usecase"
@@ -9,6 +10,7 @@ import (
 
 type UserUseCase struct {
 	userRepository user_entity.UserRepositoryInterface
+	logger         *logger.ContextualLogger
 }
 
 type UserInputDTO struct {
@@ -29,5 +31,6 @@ type UserUseCaseInterface interface {
 func NewUseCase(userRepository user_entity.UserRepositoryInterface) UserUseCaseInterface {
 	return &UserUseCase{
 		userRepository: userRepository,
+		logger:         logger.WithComponent("usecase-user"),
 	}
 }

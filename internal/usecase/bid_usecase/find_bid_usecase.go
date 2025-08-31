@@ -3,39 +3,53 @@ package bid_usecase
 import (
 	"context"
 	"l03/internal/internal_error"
+
+	"go.uber.org/zap"
 )
 
-func (buc *BidUseCase) FindByAuctionId(ctx context.Context, auctionID string) (*[]BidOutputDTO, *internal_error.InternalError) {
-	collection, err := buc.BidRepository.FindByAuctionId(ctx, auctionID)
+func (buc *BidUseCase) FindByAuctionId(
+	ctx context.Context,
+	auctionId string,
+) (*[]BidOutputDTO, *internal_error.InternalError) {
+	bids, err := buc.BidRepository.FindByAuctionId(ctx, auctionId)
 	if err != nil {
+		buc.logger.Error("Error trying to find bids by auction id", err,
+			zap.String("auctionId", auctionId),
+			zap.String("error_origin", "BidRepository.FindByAuctionId"))
 		return nil, err
 	}
 
-	listDTO := make([]BidOutputDTO, len(collection))
-	for i, item := range collection {
-		listDTO[i] = BidOutputDTO{
-			ID:        item.ID,
-			UserID:    item.UserID,
-			AuctionID: item.AuctionID,
-			Amount:    item.Amount,
-			Timestamp: item.Timestamp,
-		}
+	var bidOutputs []BidOutputDTO
+	for _, bid := range bids {
+		bidOutputs = append(bidOutputs, BidOutputDTO{
+			ID:        bid.ID,
+			UserID:    bid.UserID,
+			AuctionID: bid.AuctionID,
+			Amount:    bid.Amount,
+			Timestamp: bid.Timestamp,
+		})
 	}
 
-	return &listDTO, nil
+	return &bidOutputs, nil
 }
 
-func (buc *BidUseCase) FindWinningBidByAuctionId(ctx context.Context, auctionID string) (*BidOutputDTO, *internal_error.InternalError) {
-	entity, err := buc.BidRepository.FindWinningBidByAuctionId(ctx, auctionID)
+func (buc *BidUseCase) FindWinningBidByAuctionId(
+	ctx context.Context,
+	auctionId string,
+) (*BidOutputDTO, *internal_error.InternalError) {
+	bid, err := buc.BidRepository.FindWinningBidByAuctionId(ctx, auctionId)
 	if err != nil {
+		buc.logger.Error("Error trying to find winning bid", err,
+			zap.String("auctionId", auctionId),
+			zap.String("error_origin", "BidRepository.FindWinningBidByAuctionId"))
 		return nil, err
 	}
 
 	return &BidOutputDTO{
-		ID:        entity.ID,
-		UserID:    entity.UserID,
-		AuctionID: entity.AuctionID,
-		Amount:    entity.Amount,
-		Timestamp: entity.Timestamp,
+		ID:        bid.ID,
+		UserID:    bid.UserID,
+		AuctionID: bid.AuctionID,
+		Amount:    bid.Amount,
+		Timestamp: bid.Timestamp,
 	}, nil
 }

@@ -7,9 +7,10 @@ import (
 	"l03/internal/usecase/bid_usecase"
 )
 
-func (au *AuctionUseCase) FindById(ctx context.Context, id string) (*AuctionOutputDTO, *internal_error.InternalError) {
-	entity, err := au.auctionRepository.FindById(ctx, id)
+func (auc *AuctionUseCase) FindById(ctx context.Context, id string) (*AuctionOutputDTO, *internal_error.InternalError) {
+	entity, err := auc.auctionRepository.FindById(ctx, id)
 	if err != nil {
+		auc.logger.Error("Error trying to find by id by repository", err)
 		return nil, err
 	}
 
@@ -24,9 +25,10 @@ func (au *AuctionUseCase) FindById(ctx context.Context, id string) (*AuctionOutp
 	}, nil
 }
 
-func (au *AuctionUseCase) FindActions(ctx context.Context, status AuctionStatus, category, productName string) (*[]AuctionOutputDTO, *internal_error.InternalError) {
-	collection, err := au.auctionRepository.FindAuctions(ctx, auction_entity.AuctionStatus(status), category, productName)
+func (auc *AuctionUseCase) FindActions(ctx context.Context, status AuctionStatus, category, productName string) (*[]AuctionOutputDTO, *internal_error.InternalError) {
+	collection, err := auc.auctionRepository.FindAuctions(ctx, auction_entity.AuctionStatus(status), category, productName)
 	if err != nil {
+		auc.logger.Error("Error trying to find auctions by repository", err)
 		return nil, err
 	}
 
@@ -46,9 +48,10 @@ func (au *AuctionUseCase) FindActions(ctx context.Context, status AuctionStatus,
 	return &listDTO, nil
 }
 
-func (au *AuctionUseCase) FindWinnigBidByAuctionId(ctx context.Context, auctionId string) (*WinningInfoOutputDTO, *internal_error.InternalError) {
-	auctionEntity, err := au.auctionRepository.FindById(ctx, auctionId)
+func (auc *AuctionUseCase) FindWinnigBidByAuctionId(ctx context.Context, auctionId string) (*WinningInfoOutputDTO, *internal_error.InternalError) {
+	auctionEntity, err := auc.auctionRepository.FindById(ctx, auctionId)
 	if err != nil {
+		auc.logger.Error("Error trying to find by id by repository", err)
 		return nil, err
 	}
 
@@ -62,7 +65,7 @@ func (au *AuctionUseCase) FindWinnigBidByAuctionId(ctx context.Context, auctionI
 		Timestamp:   auctionEntity.Timestamp,
 	}
 
-	bidEntity, err := au.bidRepository.FindWinningBidByAuctionId(ctx, auctionEntity.ID)
+	bidEntity, err := auc.bidRepository.FindWinningBidByAuctionId(ctx, auctionEntity.ID)
 	if err != nil {
 		return &WinningInfoOutputDTO{
 			Auction: auctionOutputDTO,
