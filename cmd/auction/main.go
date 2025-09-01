@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"errors"
 	"l03/configuration/database/mongodb"
 	"l03/configuration/logger"
 	"l03/internal/infra"
@@ -23,18 +22,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 )
 
 func main() {
 	ctx := context.Background()
 	defer logger.Sync()
-
-	if err := loadEnv(); err != nil {
-		log.Fatal(err)
-		return
-	}
 
 	dbConnection, err := mongodb.NewMongoDbConnection(ctx)
 	if err != nil {
@@ -110,36 +103,4 @@ func initControllers(
 	auctionController = auction_controller.NewController(auctionUseCase)
 
 	return
-}
-
-func loadEnv() error {
-	projectRoot, err := findProjectRoot()
-	if err != nil {
-		return err
-	}
-
-	envPath := projectRoot + "/cmd/auction/.env"
-	if err := godotenv.Load(envPath); err != nil {
-		return errors.New("error loading .env file from " + envPath + ": " + err.Error())
-	}
-	return nil
-}
-
-func findProjectRoot() (string, error) {
-	dir, err := os.Getwd()
-	if err != nil {
-		return "", err
-	}
-
-	for {
-		if _, err := os.Stat(dir + "/go.mod"); err == nil {
-			return dir, nil
-		}
-
-		parent := dir + "/.."
-		if dir == parent {
-			return "", errors.New("go.mod not found, puf")
-		}
-		dir = parent
-	}
 }

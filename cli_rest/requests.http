@@ -13,15 +13,15 @@
 @param_user_id=
 @param_bid_id=
 // Status: Active 1, Completed 2
-@param_status=2
+@param_status=
 @param_category=
 @param_product_name=
 // Condition: new 1, used 2, refurbished 3
 @param_condition=1
 
-##########################
-###### AUCTION URLs ######
-##########################
+#########################################
+############## AUCTION URLs #############
+#########################################
 
 ### Get auctions by status, category, product name
 GET {{base_url}}/{{resource_auction}} HTTP/1.1
